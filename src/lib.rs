@@ -1,6 +1,7 @@
 use reqwest::blocking::get;
 use scraper::{Html, Selector};
 use std::error::Error;
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub struct RecordEntry {
@@ -12,6 +13,23 @@ pub struct RecordEntry {
     pub character: String,
     pub vehicle: String,
     pub video_link: String,
+}
+
+impl fmt::Display for RecordEntry {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Track: {}\nTime: {}\nPlayer: {}\nCountry: {}\nDate: {}\nCharacter: {}\nVehicle: {}\nVideo: {}",
+            self.track,
+            self.time,
+            self.player,
+            self.country,
+            self.date,
+            self.character,
+            self.vehicle,
+            self.video_link
+        )
+    }
 }
 
 pub fn fetch_today_records(date_filter: &str) -> Result<Vec<RecordEntry>, Box<dyn Error>> {
@@ -106,4 +124,3 @@ mod tests {
         assert!(!records.is_empty(), "No records found for today");
     }
 }
-
