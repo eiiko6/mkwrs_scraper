@@ -1,0 +1,13 @@
+[package]
+name = "mkwrs_scraper"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "mkwrs_scraper"
+path = "src/lib.rs"
+
+[dependencies]
+regex = "1.11.1"
+reqwest = { version = "0.12.20", features = ["blocking"] }
+scraper = "0.23.1"
