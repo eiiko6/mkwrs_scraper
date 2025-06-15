@@ -1,4 +1,4 @@
-use reqwest::blocking::get;
+use reqwest::Client;
 use scraper::{Html, Selector};
 use std::error::Error;
 use std::fmt;
@@ -32,8 +32,16 @@ impl fmt::Display for RecordEntry {
     }
 }
 
-pub fn fetch_today_records(date_filter: &str) -> Result<Vec<RecordEntry>, Box<dyn Error>> {
-    let res = get("https://mkwrs.com/mkworld/")?.text()?;
+pub async fn fetch_today_records(
+    date_filter: &str,
+) -> Result<Vec<RecordEntry>, Box<dyn Error + Send + Sync>> {
+    let client = Client::new();
+    let res = client
+        .get("https://mkwrs.com/mkworld/")
+        .send()
+        .await?
+        .text()
+        .await?;
     let doc = Html::parse_document(&res);
 
     let table_selector = Selector::parse("table.wr tr").unwrap();
@@ -117,10 +125,10 @@ pub fn fetch_today_records(date_filter: &str) -> Result<Vec<RecordEntry>, Box<dy
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_fetch_today_records() {
-        let today = "2025-06-14"; // Replace with chrono if needed
-        let records = fetch_today_records(today).unwrap();
+    #[tokio::test]
+    async fn test_fetch_today_records() {
+        let today = "2025-06-14";
+        let records = fetch_today_records(today).await.unwrap();
         assert!(!records.is_empty(), "No records found for today");
     }
 }
