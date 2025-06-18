@@ -32,7 +32,7 @@ impl fmt::Display for RecordEntry {
     }
 }
 
-pub async fn fetch_today_records(
+pub async fn fetch_records(
     date_filter: &str,
 ) -> Result<Vec<RecordEntry>, Box<dyn Error + Send + Sync>> {
     let client = Client::new();
@@ -57,65 +57,60 @@ pub async fn fetch_today_records(
             continue;
         }
 
-        let track = cells[0]
-            .select(&a_selector)
-            .next()
-            .map(|a| a.inner_html())
-            .unwrap_or_default();
-        let video_link = cells[1]
-            .select(&a_selector)
-            .next()
-            .map(|a| a.value().attr("href").unwrap_or(""))
-            .unwrap_or("")
-            .to_string();
-        let time = cells[1]
-            .text()
-            .collect::<Vec<_>>()
-            .join("")
-            .trim()
-            .to_string();
-        let player = cells[2]
-            .select(&a_selector)
-            .next()
-            .map(|a| a.inner_html())
-            .unwrap_or_default();
-        let country = cells[3]
-            .select(&img_selector)
-            .next()
-            .map(|img| img.value().attr("alt").unwrap_or(""))
-            .unwrap_or("")
-            .to_string();
         let date = cells[4]
             .text()
             .collect::<Vec<_>>()
             .join("")
             .trim()
             .to_string();
-        let character = cells[6]
-            .text()
-            .collect::<Vec<_>>()
-            .join("")
-            .trim()
-            .to_string();
-        let vehicle = cells[7]
-            .text()
-            .collect::<Vec<_>>()
-            .join("")
-            .trim()
-            .to_string();
 
-        if date == date_filter {
-            entries.push(RecordEntry {
-                track,
-                time,
-                player,
-                country,
-                date,
-                character,
-                vehicle,
-                video_link,
-            });
+        if !date_filter.is_empty() && date != date_filter {
+            continue;
         }
+
+        entries.push(RecordEntry {
+            track: cells[0]
+                .select(&a_selector)
+                .next()
+                .map(|a| a.inner_html())
+                .unwrap_or_default(),
+            video_link: cells[1]
+                .select(&a_selector)
+                .next()
+                .map(|a| a.value().attr("href").unwrap_or(""))
+                .unwrap_or("")
+                .to_string(),
+            time: cells[1]
+                .text()
+                .collect::<Vec<_>>()
+                .join("")
+                .trim()
+                .to_string(),
+            player: cells[2]
+                .select(&a_selector)
+                .next()
+                .map(|a| a.inner_html())
+                .unwrap_or_default(),
+            country: cells[3]
+                .select(&img_selector)
+                .next()
+                .map(|img| img.value().attr("alt").unwrap_or(""))
+                .unwrap_or("")
+                .to_string(),
+            date,
+            character: cells[6]
+                .text()
+                .collect::<Vec<_>>()
+                .join("")
+                .trim()
+                .to_string(),
+            vehicle: cells[7]
+                .text()
+                .collect::<Vec<_>>()
+                .join("")
+                .trim()
+                .to_string(),
+        })
     }
 
     Ok(entries)
@@ -127,8 +122,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_fetch_today_records() {
-        let today = "2025-06-14";
-        let records = fetch_today_records(today).await.unwrap();
+        let records = fetch_records("").await.unwrap();
         assert!(!records.is_empty(), "No records found for today");
     }
 }
